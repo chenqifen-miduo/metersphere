@@ -495,7 +495,7 @@ public class DashboardService {
                 checkHasPermissionProject(layoutDTO, hasReadProjectIds);
                 if (StringUtils.equalsIgnoreCase(layoutDTO.getKey(), DashboardUserLayoutKeys.PROJECT_PLAN_VIEW.toString())) {
                     setPlanId(layoutDTO);
-                    if (StringUtils.isBlank(layoutDTO.getPlanId())) {
+                    if (StringUtils.isBlank(layoutDTO.getPlanId()) && CollectionUtils.isNotEmpty(hasReadProjectIds)) {
                         TestPlan latestPlanByProjectIds = extTestPlanMapper.getLatestPlanByProjectIds(hasReadProjectIds);
                         if (latestPlanByProjectIds!=null) {
                             layoutDTO.setPlanId(latestPlanByProjectIds.getId());
