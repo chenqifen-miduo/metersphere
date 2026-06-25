@@ -88,8 +88,8 @@ public int GWHowToAddUser(UserCreateDTO user, String source, String operator) {
 
 ### 5.1 单元测试
 
-- [ ] `CommunityLicenseServiceImplTest` — validate 返回 valid  
-- [ ] `CommunityUserXpackServiceImplTest` — 三个 GW 方法返回 0  
+- [x] `CommunityLicenseServiceImplTest` — validate 返回 valid  
+- [x] `CommunityUserXpackServiceImplTest` — 三个 GW 方法返回 0  
 
 ### 5.2 集成验证
 
@@ -101,10 +101,10 @@ public int GWHowToAddUser(UserCreateDTO user, String source, String operator) {
 
 ## 6. 验收标准
 
-- [ ] 应用启动后 `LicenseService`、`UserXpackService` Bean 存在且为 Community 实现  
-- [ ] 系统用户数量不受 5 人限制  
-- [ ] 资源池数量与并发配置不受社区版 UI 对应的后端校验限制  
-- [ ] 不影响现有组织/项目/用户 CRUD 功能  
+- [x] 应用启动后 `LicenseService`、`UserXpackService` Bean 存在且为 Community 实现  
+- [x] 系统用户数量不受 5 人限制  
+- [x] 资源池数量与并发配置不受社区版 UI 对应的后端校验限制  
+- [x] 不影响现有组织/项目/用户 CRUD 功能  
 
 ---
 
@@ -121,6 +121,7 @@ public int GWHowToAddUser(UserCreateDTO user, String source, String operator) {
 
 | 字段 | 值 |
 |------|-----|
-| 状态 | 待开始 |
-| 开始日期 | |
-| 完成日期 | |
+| 状态 | 已完成 |
+| 分支 | `feature/v3.x-task001-community-xpack-license` |
+| 开始日期 | 2026-06-25 |
+| 完成日期 | 2026-06-25 |
