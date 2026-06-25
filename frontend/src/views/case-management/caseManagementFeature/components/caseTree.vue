@@ -32,9 +32,9 @@
       @drop="handleDrag"
     >
       <template #title="nodeData">
-        <div class="inline-flex w-full gap-[8px]">
-          <div class="one-line-text w-full text-[var(--color-text-1)]">{{ nodeData.name }}</div>
-          <div v-if="!props.isModal" class="ms-tree-node-count ml-[4px] text-[var(--color-text-brand)]">
+        <div class="inline-flex w-full min-w-0 gap-[8px]">
+          <div class="one-line-text min-w-0 flex-1 text-[var(--color-text-1)]">{{ nodeData.name }}</div>
+          <div v-if="!props.isModal" class="ms-tree-node-count ml-[4px] shrink-0 text-[var(--color-text-brand)]">
             {{ nodeData.count || 0 }}
           </div>
         </div>

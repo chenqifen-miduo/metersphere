@@ -499,7 +499,7 @@
     @apply h-full;
     .ms-tree {
       .ms-scroll-bar();
-      @apply h-full overflow-auto;
+      @apply h-full overflow-y-auto overflow-x-hidden;
       .arco-tree-node {
         border-radius: var(--border-radius-small);
         &:hover {

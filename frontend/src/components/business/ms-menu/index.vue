@@ -523,7 +523,7 @@
               'collapse-icon': () => (collapsed.value ? <icon-right /> : <icon-left />),
             }}
           >
-            <div class="flex flex-1 flex-col gap-[4px]">{renderSubMenu()}</div>
+            <div class="flex min-h-0 flex-1 flex-col gap-[4px] overflow-hidden">{renderSubMenu()}</div>
             <div class="flex flex-col items-center">{personalInfoMenu()}</div>
           </a-menu>
           {personalInfoDrawer()}
@@ -542,9 +542,14 @@
       background-color: var(--color-text-fff);
     }
     .arco-menu-inner {
-      @apply flex flex-col justify-between;
+      @apply flex min-h-0 flex-col justify-between;
 
+      overflow-x: hidden;
+      overflow-y: auto;
       padding: 16px !important;
+      height: 100%;
+      max-height: calc(100vh - 56px);
+      .ms-scroll-bar();
       .arco-menu-inline {
         &--bottom {
           @apply mt-auto;

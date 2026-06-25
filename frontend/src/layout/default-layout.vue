@@ -167,11 +167,11 @@
 
     transition: all 0.2s cubic-bezier(0.34, 0.69, 0.1, 1);
     > :deep(.arco-layout-sider-children) {
-      @apply overflow-visible; // 防止展开收起按钮显示不全
+      @apply overflow-visible;
     }
   }
   .menu-wrapper {
-    @apply h-full overflow-visible; // 防止展开收起按钮显示不全
+    @apply h-full overflow-visible;
     :deep(.arco-menu) {
       ::-webkit-scrollbar {
         width: 12px;

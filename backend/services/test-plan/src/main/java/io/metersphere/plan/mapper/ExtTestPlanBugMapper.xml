@@ -51,14 +51,17 @@
     </select>
 
     <select id="selectPlanRelationBug" resultType="io.metersphere.plan.dto.response.TestPlanBugPageResponse">
-        select b.id as id, b.num as num, b.title as title, bc.description content, b.handle_user handleUser, b.status as status, brc.create_user createUser, brc.create_time createTime,brc.test_plan_id testPlanId
+        select b.id as id, b.num as num, b.title as title, bc.description content, b.handle_user handleUser, b.status as status,
+               SUBSTRING_INDEX(GROUP_CONCAT(brc.create_user ORDER BY brc.create_time DESC), ',', 1) createUser,
+               MAX(brc.create_time) createTime,
+               MAX(brc.test_plan_id) testPlanId
         from bug_relation_case brc join bug b on brc.bug_id = b.id
         left join bug_content bc on b.id = bc.bug_id
         <where>
             b.deleted = false
             and brc.test_plan_id = #{planId}
         </where>
-        group by brc.bug_id
+        group by b.id, b.num, b.title, bc.description, b.handle_user, b.status, brc.bug_id
     </select>
 
 

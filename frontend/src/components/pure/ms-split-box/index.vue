@@ -200,7 +200,9 @@
     }
   }
   .ms-split-box--left {
-    width: calc(v-bind(innerSize) + 7px);
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
   }
   .expand-icon {
     @apply invisible relative flex cursor-pointer justify-center;

@@ -48,16 +48,25 @@ public class BaseDisplayService {
         if (bytes == null) {
             PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(getClass().getClassLoader());
             switch (fileName) {
-                case "icon" ->
-                        bytes = IOUtils.toByteArray(resolver.getResource("/static/favicon.ico").getInputStream());
-                case "logoPlatform" -> {
-                    bytes = IOUtils.toByteArray(resolver.getResource("/static/images/MeterSphere-logo.svg").getInputStream());
+                case "icon" -> {
+                    bytes = readStaticResource(resolver, "/static/favicon.ico", "/static/images/MeterSphere-logo.svg");
                     contentType = MediaType.valueOf("image/svg+xml");
                 }
-                case "loginImage" ->
-                        bytes = IOUtils.toByteArray(resolver.getResource("/static/images/login-banner.jpg").getInputStream());
+                case "logoPlatform" -> {
+                    bytes = readStaticResource(resolver, "/static/images/MeterSphere-logo.svg");
+                    contentType = MediaType.valueOf("image/svg+xml");
+                }
+                case "loginImage" -> {
+                    try {
+                        bytes = readStaticResource(resolver, "/static/images/login-banner.jpg");
+                        contentType = MediaType.IMAGE_JPEG;
+                    } catch (IOException e) {
+                        bytes = readStaticResource(resolver, "/static/images/MeterSphere-logo.svg");
+                        contentType = MediaType.valueOf("image/svg+xml");
+                    }
+                }
                 default -> {
-                    bytes = IOUtils.toByteArray(resolver.getResource("/static/images/login-logo.svg").getInputStream());
+                    bytes = readStaticResource(resolver, "/static/images/login-logo.svg");
                     contentType = MediaType.valueOf("image/svg+xml");
                 }
             }
@@ -67,6 +76,18 @@ public class BaseDisplayService {
                 .contentType(contentType)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
                 .body(bytes);
+    }
+
+    private byte[] readStaticResource(PathMatchingResourcePatternResolver resolver, String... paths) throws IOException {
+        IOException lastException = null;
+        for (String path : paths) {
+            try {
+                return IOUtils.toByteArray(resolver.getResource(path).getInputStream());
+            } catch (IOException e) {
+                lastException = e;
+            }
+        }
+        throw lastException != null ? lastException : new IOException("static resource not found");
     }
 
 }
