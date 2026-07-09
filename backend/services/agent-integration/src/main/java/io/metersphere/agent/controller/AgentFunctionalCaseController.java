@@ -24,6 +24,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
+import io.metersphere.sdk.exception.MSException;
+import io.metersphere.system.controller.handler.result.MsHttpResultCode;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -143,6 +145,6 @@ public class AgentFunctionalCaseController {
                 || StringUtils.contains(scopes, requiredScope)) {
             return;
         }
-        throw new IllegalStateException("Agent token scope 不足: " + requiredScope);
+        throw new MSException(MsHttpResultCode.FORBIDDEN, "Agent token scope 不足: " + requiredScope);
     }
 }

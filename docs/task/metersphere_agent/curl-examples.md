@@ -9,10 +9,12 @@
 
 ```bash
 export MS_BASE_URL=http://localhost:8081
-export MS_TOKEN=msat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-export MS_PROJECT=proj-001
+export MS_TOKEN=msat_demo_token_for_local_testing_01
+export MS_PROJECT=100001100001
 export MS_PLAN=plan-001
 ```
+
+> **自动化验证**：后端启动后执行 `.\scripts\verify-agent-api.ps1`（覆盖 health / 401 / 403 / OpenAPI）。
 
 ---
 

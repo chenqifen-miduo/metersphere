@@ -1,8 +1,12 @@
 package io.metersphere.agent.controller;
 
 import io.metersphere.agent.constants.AgentTokenScope;
+import io.metersphere.agent.constants.AgentTokenScope;
+import io.metersphere.sdk.exception.MSException;
+import io.metersphere.agent.dto.AgentCaseDTO;
 import io.metersphere.agent.dto.AgentCaseSearchResponse;
 import io.metersphere.agent.dto.AgentCaseSubmitRequest;
+import io.metersphere.agent.dto.AgentModuleDTO;
 import io.metersphere.agent.security.AgentTokenContext;
 import io.metersphere.agent.service.AgentAttachmentService;
 import io.metersphere.agent.service.AgentBatchSubmitService;
@@ -18,6 +22,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -71,8 +78,50 @@ class AgentFunctionalCaseControllerTests {
         request.setCaseId("fc-001");
         request.setLastExecResult("SUCCESS");
 
-        IllegalStateException ex = Assertions.assertThrows(IllegalStateException.class, () -> controller.submit(request));
+        MSException ex = Assertions.assertThrows(MSException.class, () -> controller.submit(request));
         Assertions.assertTrue(ex.getMessage().contains(AgentTokenScope.FUNCTIONAL_SUBMIT));
+    }
+
+    @Test
+    void getShouldDelegateToSearchService() {
+        AgentToken token = new AgentToken();
+        token.setScopes(AgentTokenScope.FUNCTIONAL_READ);
+        AgentTokenContext.set(token);
+
+        AgentCaseDTO dto = new AgentCaseDTO();
+        dto.setCaseId("fc-001");
+        when(agentFunctionalCaseSearchService.getById("fc-001", true, "plan-001")).thenReturn(dto);
+
+        AgentCaseDTO result = controller.get("fc-001", true, "plan-001");
+        Assertions.assertEquals("fc-001", result.getCaseId());
+    }
+
+    @Test
+    void modulesShouldDelegateToSearchService() {
+        AgentToken token = new AgentToken();
+        token.setScopes(AgentTokenScope.FUNCTIONAL_ALL);
+        AgentTokenContext.set(token);
+
+        AgentModuleDTO module = new AgentModuleDTO();
+        module.setId("mod-order");
+        module.setPath("订单");
+        when(agentFunctionalCaseSearchService.listModules("proj-001")).thenReturn(List.of(module));
+
+        List<AgentModuleDTO> modules = controller.modules("proj-001");
+        Assertions.assertEquals(1, modules.size());
+        verify(agentFunctionalCaseSearchService).listModules(eq("proj-001"));
+    }
+
+    @Test
+    void searchShouldRejectSubmitScopeOnlyToken() {
+        AgentToken token = new AgentToken();
+        token.setScopes(AgentTokenScope.FUNCTIONAL_SUBMIT);
+        AgentTokenContext.set(token);
+
+        MSException ex = Assertions.assertThrows(
+                MSException.class,
+                () -> controller.search(new io.metersphere.agent.dto.AgentCaseSearchRequest()));
+        Assertions.assertTrue(ex.getMessage().contains(AgentTokenScope.FUNCTIONAL_READ));
     }
 
     @Test

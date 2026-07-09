@@ -1,6 +1,13 @@
 -- Agent 集成测试 Fixture
 -- 明文 Token: msat_demo_token_for_local_testing_01
--- 用法：将 REPLACE_PROJECT_ID 替换为实际项目 ID（默认项目可用 100001100001）
+-- 只读 Token: msat_demo_readonly_token_01
+--
+-- 导入方式（将 REPLACE_PROJECT_ID 替换为实际项目 ID，默认 100001100001）:
+--   Get-Content docs/task/fixtures/agent_integration_test_data.sql `
+--     -replace 'REPLACE_PROJECT_ID','100001100001' |
+--     docker exec -i ms-dev-mysql mysql -uroot -pPassword123@mysql metersphere
+--
+-- 验证: .\scripts\verify-agent-api.ps1 -ProjectId 100001100001
 
 INSERT INTO agent_token (
     id, name, token_prefix, token_hash, user_id, project_id, scopes, enable, create_time, create_user

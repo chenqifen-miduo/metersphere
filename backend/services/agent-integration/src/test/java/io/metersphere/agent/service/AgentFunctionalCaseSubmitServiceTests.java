@@ -20,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,6 +51,29 @@ class AgentFunctionalCaseSubmitServiceTests {
         AgentCaseSubmitRequest request = baseRequest();
         request.setTestPlanId("plan-001");
         request.setTestPlanCaseId(null);
+
+        MSException ex = Assertions.assertThrows(MSException.class, () -> submitService.submit(request));
+        Assertions.assertTrue(ex.getMessage().contains("testPlanId"));
+    }
+
+    @Test
+    void inPlanSubmitShouldDelegateToTestPlanRun() {
+        AgentCaseSubmitRequest request = baseRequest();
+        request.setTestPlanId("plan-001");
+        request.setTestPlanCaseId("relate-001");
+        when(agentCaseSchemaMapper.toStepsExecResultJson(any())).thenReturn("[{\"actualResult\":\"通过\"}]");
+
+        submitService.submit(request);
+
+        verify(testPlanFunctionalCaseService).run(any(), any());
+        verify(agentExecLogService, never()).log(any(), any());
+    }
+
+    @Test
+    void wrongTestPlanCaseIdPairShouldFailValidation() {
+        AgentCaseSubmitRequest request = baseRequest();
+        request.setTestPlanId(null);
+        request.setTestPlanCaseId("relate-001");
 
         MSException ex = Assertions.assertThrows(MSException.class, () -> submitService.submit(request));
         Assertions.assertTrue(ex.getMessage().contains("testPlanId"));
