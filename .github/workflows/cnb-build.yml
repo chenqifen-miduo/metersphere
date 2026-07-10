@@ -147,9 +147,13 @@ jobs:
             clone "${STATIC_REPO_URL}" _static_repo
 
           cd _static_repo
-          default_branch="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##')"
+          default_branch="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##' || true)"
           if [ -z "${default_branch}" ]; then
-            default_branch="$(git branch --show-current)"
+            default_branch="$(git branch --show-current || true)"
+          fi
+          if [ -z "${default_branch}" ]; then
+            default_branch="master"
+            git checkout -B "${default_branch}"
           fi
 
           dest_dir="${STATIC_REPO_PATH}/${VERSION}"
@@ -164,7 +168,8 @@ jobs:
             echo "Frontend zip already exists with the same content."
           else
             git commit -m "chore: store frontend ${VERSION} [skip ci]"
-            git -c "http.https://cnb.cool/.extraheader=AUTHORIZATION: basic ${basic}" push
+            git -c "http.https://cnb.cool/.extraheader=AUTHORIZATION: basic ${basic}" \
+              push origin "HEAD:${default_branch}"
           fi
 
           download_url="${STATIC_REPO_URL}/-/git/raw/${default_branch}/${dest_dir}/${ARTIFACT}.zip?download=true"
