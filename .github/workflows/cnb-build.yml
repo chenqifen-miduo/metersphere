@@ -223,3 +223,164 @@ jobs:
           tags: |
             ${{ needs.prepare.outputs.cnb_registry }}/${{ needs.prepare.outputs.cnb_namespace }}/${{ needs.prepare.outputs.backend_name }}:${{ needs.prepare.outputs.version }}
             ${{ needs.prepare.outputs.cnb_registry }}/${{ needs.prepare.outputs.cnb_namespace }}/${{ needs.prepare.outputs.backend_name }}:latest
+
+  publish-cnb-version:
+    name: Publish Version Info To CNB
+    runs-on: ubuntu-latest
+    needs:
+      - prepare
+      - frontend
+      - backend
+    if: ${{ needs.frontend.result == 'success' && needs.backend.result == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Push build metadata to CNB repo
+        shell: bash
+        env:
+          CNB_TOKEN: ${{ secrets.CNB_TOKEN }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          CNB_REGISTRY: ${{ needs.prepare.outputs.cnb_registry }}
+          CNB_NAMESPACE: ${{ needs.prepare.outputs.cnb_namespace }}
+          BACKEND_NAME: ${{ needs.prepare.outputs.backend_name }}
+          FRONTEND_ARTIFACT: ${{ needs.prepare.outputs.frontend_artifact }}
+          FRONTEND_URL: ${{ needs.frontend.outputs.download_url }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CNB_TOKEN}" ]; then
+            echo "GitHub Secret CNB_TOKEN 未配置"
+            exit 1
+          fi
+          if [ -z "${FRONTEND_URL}" ]; then
+            echo "Frontend download URL is empty"
+            exit 1
+          fi
+
+          CNB_REPO_URL="https://cnb.cool/${CNB_NAMESPACE}"
+          BACKEND_IMAGE="${CNB_REGISTRY}/${CNB_NAMESPACE}/${BACKEND_NAME}:${VERSION}"
+          BRANCH_NAME="${GITHUB_REF_NAME}"
+          AUTHOR="${GITHUB_ACTOR}"
+          MSG="$(git log -1 --pretty=format:'%s')"
+          MSG_CLEAN="$(printf '%s' "${MSG}" | tr '\n' ' ')"
+          PUBLISH_TIME="$(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M:%S')"
+          export VERSION BRANCH_NAME AUTHOR MSG_CLEAN PUBLISH_TIME BACKEND_IMAGE FRONTEND_URL
+
+          basic="$(printf 'cnb:%s' "${CNB_TOKEN}" | base64 -w0)"
+          git -c "http.https://cnb.cool/.extraheader=AUTHORIZATION: basic ${basic}" \
+            clone --depth=1 "${CNB_REPO_URL}" _cnb_version_repo
+
+          cd _cnb_version_repo
+          default_branch="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##' || true)"
+          if [ -z "${default_branch}" ]; then
+            default_branch="$(git branch --show-current || true)"
+          fi
+          if [ -z "${default_branch}" ]; then
+            default_branch="master"
+            git checkout -B "${default_branch}"
+          fi
+
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          import os
+          import re
+
+          def quote(value):
+              return json.dumps(value, ensure_ascii=False)
+
+          backend_version = [
+              "##当前测试环境后端版本信息:",
+              f"version: {quote(os.environ['VERSION'])}",
+              f"branch_name: {quote(os.environ['BRANCH_NAME'])}",
+              f"提交人: {quote(os.environ['AUTHOR'])}",
+              f"服务提交信息: {quote(os.environ['MSG_CLEAN'])}",
+              f"testVersion: {quote(os.environ['BACKEND_IMAGE'])}",
+              f"backend_image: {quote(os.environ['BACKEND_IMAGE'])}",
+              f"提交时间: {quote(os.environ['PUBLISH_TIME'])}",
+          ]
+          frontend_version = [
+              "##当前测试环境前端版本信息:",
+              f"version: {quote(os.environ['VERSION'])}",
+              f"branch_name: {quote(os.environ['BRANCH_NAME'])}",
+              f"提交人: {quote(os.environ['AUTHOR'])}",
+              f"服务提交信息: {quote(os.environ['MSG_CLEAN'])}",
+              f"testVersion: {quote(os.environ['FRONTEND_URL'])}",
+              f"frontend_url: {quote(os.environ['FRONTEND_URL'])}",
+              f"artifact: {quote(os.environ['FRONTEND_ARTIFACT'])}",
+              f"提交时间: {quote(os.environ['PUBLISH_TIME'])}",
+          ]
+          Path("BackendVersion.yml").write_text("\n".join(backend_version) + "\n", encoding="utf-8")
+          Path("FrontendVersion.yml").write_text("\n".join(frontend_version) + "\n", encoding="utf-8")
+
+          path = Path(".cnb/web_trigger.yml")
+          if not path.exists():
+              raise SystemExit(0)
+
+          frontend_events = {"web_trigger_test_frontend", "web_trigger_prod_frontend"}
+          backend_events = {"web_trigger_test_backend", "web_trigger_prod_backend"}
+          common = {
+              "author": os.environ["AUTHOR"],
+              "message": os.environ["MSG_CLEAN"],
+              "version": os.environ["VERSION"],
+              "publish_time": os.environ["PUBLISH_TIME"],
+          }
+
+          lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+          output = []
+          current_event = None
+          in_env = False
+          env_indent = 0
+
+          for line in lines:
+              stripped = line.lstrip()
+              indent = len(line) - len(stripped)
+              event_match = re.match(r"\s*event:\s*['\"]?([^'\"\s]+)['\"]?", line)
+              if event_match:
+                  current_event = event_match.group(1)
+                  in_env = False
+
+              if re.match(r"\s*env:\s*$", line):
+                  in_env = True
+                  env_indent = indent
+                  output.append(line)
+                  continue
+
+              if in_env and stripped and not stripped.startswith("#") and indent <= env_indent:
+                  in_env = False
+
+              if in_env and current_event in frontend_events | backend_events:
+                  key_match = re.match(r"^(\s*)(author|message|version|frontend_url|backend_image|publish_time):\s*.*?(\r?\n)?$", line)
+                  if key_match:
+                      key = key_match.group(2)
+                      values = dict(common)
+                      if current_event in frontend_events:
+                          values["frontend_url"] = os.environ["FRONTEND_URL"]
+                      if current_event in backend_events:
+                          values["backend_image"] = os.environ["BACKEND_IMAGE"]
+                      if key in values:
+                          newline = "\n" if line.endswith("\n") else ""
+                          line = f"{key_match.group(1)}{key}: {json.dumps(values[key], ensure_ascii=False)}{newline}"
+
+              output.append(line)
+
+          path.write_text("".join(output), encoding="utf-8")
+          PY
+
+          git add BackendVersion.yml FrontendVersion.yml
+          if [ -f ".cnb/web_trigger.yml" ]; then
+            git add .cnb/web_trigger.yml
+          fi
+
+          if git diff --cached --quiet; then
+            echo "No CNB version metadata changes"
+            exit 0
+          fi
+
+          git commit -m "chore: update build metadata ${VERSION} [skip ci]"
+          git -c "http.https://cnb.cool/.extraheader=AUTHORIZATION: basic ${basic}" \
+            push origin "HEAD:${default_branch}"
