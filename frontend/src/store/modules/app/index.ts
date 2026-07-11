@@ -39,42 +39,76 @@ const defaultThemeConfig = {
 };
 const defaultLoginConfig = {
   title: 'MeterSphere',
-  icon: [{ url: GetPlatformIconUrl, name: 'favicon.ico' }],
-  loginLogo: [{ url: GetLoginLogoUrl, name: 'login-logo.svg' }],
-  loginImage: [{ url: GetLoginImageUrl, name: 'login-banner.svg' }],
+  icon: [{ uid: 'default-icon', url: GetPlatformIconUrl, name: 'favicon.ico' }],
+  loginLogo: [{ uid: 'default-login-logo', url: GetLoginLogoUrl, name: 'login-logo.svg' }],
+  loginImage: [{ uid: 'default-login-image', url: GetLoginImageUrl, name: 'login-banner.svg' }],
   slogan: 'login.form.title',
 };
 const defaultPlatformConfig = {
-  logoPlatform: [{ url: GetTitleImgUrl, name: 'MeterSphere-logo.svg' }],
+  logoPlatform: [{ uid: 'default-logo-platform', url: GetTitleImgUrl, name: 'MeterSphere-logo.svg' }],
   platformName: 'MeterSphere',
   helpDoc: 'https://metersphere.io/docs/v3.x/',
 };
 
-const defaultDisplayFiles: Partial<Record<PageConfigKeys, { url: string; name: string; fileNames: string[] }>> = {
-  icon: { url: GetPlatformIconUrl, name: 'favicon.ico', fileNames: ['favicon.ico'] },
-  loginLogo: { url: GetLoginLogoUrl, name: 'login-logo.svg', fileNames: ['login-logo.svg'] },
-  loginImage: { url: GetLoginImageUrl, name: 'login-banner.svg', fileNames: ['login-banner.jpg', 'login-banner.svg'] },
-  logoPlatform: { url: GetTitleImgUrl, name: 'MeterSphere-logo.svg', fileNames: ['MeterSphere-logo.svg', 'MS-full-logo.svg'] },
+const displayFileKeys = ['icon', 'loginLogo', 'loginImage', 'logoPlatform'] as PageConfigKeys[];
+
+const defaultDisplayFiles: Partial<
+  Record<PageConfigKeys, { uid: string; url: string; name: string; fileNames: string[]; backendPaths: string[] }>
+> = {
+  icon: {
+    uid: 'default-icon',
+    url: GetPlatformIconUrl,
+    name: 'favicon.ico',
+    fileNames: ['favicon.ico'],
+    backendPaths: ['/base-display/get/icon'],
+  },
+  loginLogo: {
+    uid: 'default-login-logo',
+    url: GetLoginLogoUrl,
+    name: 'login-logo.svg',
+    fileNames: ['login-logo.svg'],
+    backendPaths: ['/base-display/get/login-logo'],
+  },
+  loginImage: {
+    uid: 'default-login-image',
+    url: GetLoginImageUrl,
+    name: 'login-banner.svg',
+    fileNames: ['login-banner.jpg', 'login-banner.svg'],
+    backendPaths: ['/base-display/get/login-image'],
+  },
+  logoPlatform: {
+    uid: 'default-logo-platform',
+    url: GetTitleImgUrl,
+    name: 'MeterSphere-logo.svg',
+    fileNames: ['MeterSphere-logo.svg', 'MS-full-logo.svg'],
+    backendPaths: ['/base-display/get/logo-platform'],
+  },
 };
 
-function getDisplayFileConfig(key: PageConfigKeys, fileName: string, paramValue: string) {
+function getDisplayFileConfig(key: PageConfigKeys, fileName = '', paramValue = '') {
   const defaultFile = defaultDisplayFiles[key];
   if (!defaultFile) {
     return {
+      uid: `${key}-${fileName || paramValue || 'file'}`,
       url: fileName,
       name: paramValue,
     };
   }
 
-  const isBackendDefaultFile = defaultFile.fileNames.some((name) => paramValue?.endsWith(name));
+  const source = `${fileName} ${paramValue}`;
+  const isBackendDefaultFile =
+    defaultFile.fileNames.some((name) => source.includes(name)) ||
+    defaultFile.backendPaths.some((path) => source.includes(path));
   if (!fileName || isBackendDefaultFile) {
     return {
+      uid: defaultFile.uid,
       url: defaultFile.url,
       name: defaultFile.name,
     };
   }
 
   return {
+    uid: `${key}-${fileName || paramValue}`,
     url: fileName,
     name: paramValue,
   };
@@ -340,15 +374,22 @@ const useAppStore = defineStore('app', {
     /**
      * 初始化页面配置
      */
+    normalizePageConfigDisplayAssets() {
+      displayFileKeys.forEach((key) => {
+        const file = this.pageConfig[key]?.[0];
+        this.pageConfig[key] = [getDisplayFileConfig(key, file?.url, file?.name)] as any;
+      });
+    },
     async initPageConfig() {
       try {
+        this.normalizePageConfigDisplayAssets();
         const res = await getPageConfig();
         if (Array.isArray(res) && res.length > 0) {
           let hasStyleChange = false;
           let hasThemeChange = false;
           res.forEach((e) => {
             const key = e.paramKey.split('ui.')[1] as PageConfigKeys; // 参数名前缀ui.去掉
-            if (['icon', 'loginLogo', 'loginImage', 'logoPlatform'].includes(key)) {
+            if (displayFileKeys.includes(key)) {
               // 四个属性值为文件类型，单独处理
               this.pageConfig[key] = [getDisplayFileConfig(key, e.fileName, e.paramValue)] as any;
             } else {

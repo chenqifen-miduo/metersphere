@@ -114,7 +114,7 @@ jobs:
           ARTIFACT="${{ needs.prepare.outputs.frontend_artifact }}"
           ZIP_NAME="${ARTIFACT}-${VERSION}.zip"
           cd "${{ needs.prepare.outputs.frontend_context }}/dist"
-          zip -r "${GITHUB_WORKSPACE}/${ZIP_NAME}" .
+          zip -r "${GITHUB_WORKSPACE}/${ZIP_NAME}" . -x "*.gz"
           cd "${GITHUB_WORKSPACE}"
           echo "ZIP_NAME=${ZIP_NAME}" >> "$GITHUB_ENV"
 
