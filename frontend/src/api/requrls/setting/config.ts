@@ -40,13 +40,13 @@ export const GetCleanConfigUrl = '/system/parameter/get/clean-config';
 export const EditUploadConfigUrl = '/system/parameter/edit/upload-config';
 
 // 获取系统主页左上角图片
-export const GetTitleImgUrl = `${import.meta.env.VITE_API_BASE_URL}/base-display/get/logo-platform`;
+export const GetTitleImgUrl = `${import.meta.env.BASE_URL}images/MeterSphere-logo.svg`;
 // 获取登录 logo
-export const GetLoginLogoUrl = `${import.meta.env.VITE_API_BASE_URL}/base-display/get/login-logo`;
+export const GetLoginLogoUrl = `${import.meta.env.BASE_URL}images/login-logo.svg`;
 // 获取登录大图
-export const GetLoginImageUrl = `${import.meta.env.VITE_API_BASE_URL}/base-display/get/login-image`;
+export const GetLoginImageUrl = `${import.meta.env.BASE_URL}images/login-banner.svg`;
 // 获取平台标签图标
-export const GetPlatformIconUrl = `${import.meta.env.VITE_API_BASE_URL}/base-display/get/icon`;
+export const GetPlatformIconUrl = `${import.meta.env.BASE_URL}images/MeterSphere-logo.svg`;
 // 模型配置
 // 系统设置-查看模型集合
 export const ModelConfigListUrl = '/ai/config/source/list';
