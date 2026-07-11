@@ -19,7 +19,7 @@
             <property name="combineSearch" value="request.combineSearch"/>
             <property name="projectId" value="${request.projectId}"/>
         </include>
-        group by brc.bug_id
+        group by b.id, b.num, b.title, bc.description, b.handle_user, b.status, b.create_user, b.create_time
     </select>
 
 
@@ -36,7 +36,7 @@
                 </foreach>
             </if>
         </where>
-        group by brc.bug_id
+        group by b.id, b.num, b.title, bc.description, b.handle_user, b.status, b.create_user, b.create_time, brc.test_plan_id
     </select>
 
     <select id="selectBugCountByPlanId" resultType="io.metersphere.plan.dto.response.TestPlanBugPageResponse">
@@ -47,7 +47,7 @@
             b.deleted = false
             and brc.test_plan_id = #{planId}
         </where>
-        group by brc.bug_id
+        group by b.id, b.num, b.title, bc.description, b.handle_user, b.status, b.create_user, b.create_time, brc.test_plan_id
     </select>
 
     <select id="selectPlanRelationBug" resultType="io.metersphere.plan.dto.response.TestPlanBugPageResponse">
@@ -58,7 +58,7 @@
             b.deleted = false
             and brc.test_plan_id = #{planId}
         </where>
-        group by brc.bug_id
+        group by b.id, b.num, b.title, bc.description, b.handle_user, b.status, brc.create_user, brc.create_time, brc.test_plan_id
     </select>
 
 
