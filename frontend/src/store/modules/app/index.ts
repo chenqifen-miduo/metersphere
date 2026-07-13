@@ -10,12 +10,7 @@ import { getProjectList } from '@/api/modules/project-management/project';
 import { getBaseInfo, getPageConfig } from '@/api/modules/setting/config';
 import { getPackageType, getSystemVersion } from '@/api/modules/system';
 import { getMenuList } from '@/api/modules/user';
-import {
-  GetLoginImageUrl,
-  GetLoginLogoUrl,
-  GetPlatformIconUrl,
-  GetTitleImgUrl,
-} from '@/api/requrls/setting/config';
+import { GetLoginImageUrl, GetLoginLogoUrl, GetPlatformIconUrl, GetTitleImgUrl } from '@/api/requrls/setting/config';
 import defaultSettings from '@/config/settings.json';
 import { useI18n } from '@/hooks/useI18n';
 import useUser from '@/hooks/useUser';

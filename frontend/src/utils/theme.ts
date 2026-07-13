@@ -141,8 +141,8 @@ export function setFavicon(url: string) {
   const head = document.querySelector('head');
   const link = document.createElement('link');
   link.rel = 'shortcut icon';
-  link.href = url;
-  link.type = 'image/x-icon';
+  link.href = url.startsWith('/') || url.startsWith('http') ? url : `/${url}`;
+  link.type = url.includes('.svg') || url.includes('/base-display/get/icon') ? 'image/svg+xml' : 'image/x-icon';
 
   // 移除之前的 favicon
   const oldFavicon = document.querySelector('link[rel="shortcut icon"]');

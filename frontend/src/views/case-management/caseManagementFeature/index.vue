@@ -3,7 +3,7 @@
     <MsSplitBox :not-show-first="isAdvancedSearchMode">
       <template #first>
         <div class="p-[16px] pb-0">
-          <div class="feature-case h-[100%]">
+          <div class="feature-case h-[100%] min-w-0 overflow-x-hidden">
             <a-input
               v-model:model-value="groupKeyword"
               :placeholder="t('caseManagement.caseReview.folderSearchPlaceholder')"
@@ -11,13 +11,17 @@
               class="mb-[16px]"
               :max-length="255"
             />
-            <div class="case h-[38px]">
-              <div class="flex items-center" :class="getActiveClass('all')" @click="setActiveFolder('all')">
-                <MsIcon type="icon-icon_folder_filled1" class="folder-icon" />
-                <div class="folder-name mx-[4px]">{{ t('caseManagement.featureCase.allCase') }}</div>
-                <div class="folder-count">({{ modulesCount.all || 0 }})</div>
+            <div class="case h-[38px] min-w-0">
+              <div
+                class="flex min-w-0 flex-1 items-center"
+                :class="getActiveClass('all')"
+                @click="setActiveFolder('all')"
+              >
+                <MsIcon type="icon-icon_folder_filled1" class="folder-icon shrink-0" />
+                <div class="folder-name mx-[4px] truncate">{{ t('caseManagement.featureCase.allCase') }}</div>
+                <div class="folder-count shrink-0">({{ modulesCount.all || 0 }})</div>
               </div>
-              <div class="ml-auto flex items-center">
+              <div class="ml-auto flex shrink-0 items-center">
                 <a-tooltip :content="isExpandAll ? t('common.expandAllSubModule') : t('common.collapseAllSubModule')">
                   <MsButton type="icon" status="secondary" class="!mr-0 p-[4px]" @click="expandHandler">
                     <MsIcon :type="isExpandAll ? 'icon-icon_folder_collapse1' : 'icon-icon_folder_expansion1'" />

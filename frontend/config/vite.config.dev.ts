@@ -10,21 +10,23 @@ export default mergeConfig(
   {
     mode: 'development',
     server: {
+      host: true,
+      port: 5173,
       open: true,
       fs: {
         strict: true,
       },
       proxy: {
+        '/front': {
+          target: process.env.VITE_DEV_DOMAIN,
+          changeOrigin: true,
+          rewrite: (path: string) => path.replace(/^\/front/, ''),
+        },
         '/ws': {
           target: process.env.VITE_DEV_DOMAIN,
           changeOrigin: true,
           rewrite: (path: string) => path.replace(/^\/front\/ws/, ''),
           ws: true,
-        },
-        '/front': {
-          target: process.env.VITE_DEV_DOMAIN,
-          changeOrigin: true,
-          rewrite: (path: string) => path.replace(/^\/front/, ''),
         },
         '/file': {
           target: process.env.VITE_DEV_DOMAIN,

@@ -2,8 +2,10 @@ package io.metersphere.system.config;
 
 
 import io.metersphere.sdk.util.FilterChainUtils;
+import io.metersphere.sdk.util.ShiroFilterChainExtender;
 import io.metersphere.system.security.ApiKeyFilter;
 import io.metersphere.system.security.CsrfFilter;
+import io.metersphere.system.security.MsAuthenticationFilter;
 import io.metersphere.system.security.MsPermissionAnnotationMethodInterceptor;
 import io.metersphere.system.security.realm.LocalRealm;
 import org.apache.shiro.aop.AnnotationResolver;
@@ -25,6 +27,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,7 +35,12 @@ import java.util.Map;
 public class ShiroConfig {
 
     @Bean
-    public ShiroFilterFactoryBean shiroFilterFactoryBean(DefaultWebSecurityManager sessionManager) {
+    public ShiroFilterFactoryBean shiroFilterFactoryBean(DefaultWebSecurityManager sessionManager,
+                                                         @org.springframework.beans.factory.annotation.Autowired(required = false)
+                                                         List<ShiroFilterChainExtender> shiroFilterChainExtenders) {
+        if (shiroFilterChainExtenders == null) {
+            shiroFilterChainExtenders = List.of();
+        }
         ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
         shiroFilterFactoryBean.setLoginUrl("/");
         shiroFilterFactoryBean.setSecurityManager(sessionManager);
@@ -41,15 +49,18 @@ public class ShiroConfig {
 
         shiroFilterFactoryBean.getFilters().put("apikey", new ApiKeyFilter());
         shiroFilterFactoryBean.getFilters().put("csrf", new CsrfFilter());
+        shiroFilterFactoryBean.getFilters().put("authc", new MsAuthenticationFilter());
 
-        Map<String, String> filterChainDefinitionMap = shiroFilterFactoryBean.getFilterChainDefinitionMap();
-
+        Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
+        if (shiroFilterChainExtenders != null) {
+            for (ShiroFilterChainExtender extender : shiroFilterChainExtenders) {
+                extender.extend(shiroFilterFactoryBean.getFilters(), filterChainDefinitionMap);
+            }
+        }
         filterChainDefinitionMap.putAll(FilterChainUtils.loadBaseFilterChain());
-
-
         filterChainDefinitionMap.putAll(FilterChainUtils.ignoreCsrfFilter());
-
         filterChainDefinitionMap.put("/**", "apikey, csrf, authc");
+        shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);
         return shiroFilterFactoryBean;
     }
 
