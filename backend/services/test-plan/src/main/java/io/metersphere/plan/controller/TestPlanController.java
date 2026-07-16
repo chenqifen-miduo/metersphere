@@ -284,7 +284,7 @@ public class TestPlanController {
     @CheckOwner(resourceId = "#request.getTestPlanId()", resourceType = "test_plan")
     public Pager<List<TestPlanExecuteHisDTO>> pageHis(@Validated @RequestBody TestPlanExecuteHisPageRequest request) {
         Page<Object> page = PageHelper.startPage(request.getCurrent(), request.getPageSize(),
-                MapUtils.isEmpty(request.getSort()) ? "et.create_time desc" : request.getSortString());
+                MapUtils.isEmpty(request.getSort()) ? "sortTime desc" : request.getSortString());
         return PageUtils.setPageInfo(page, testPlanService.listHis(request));
     }
 }
