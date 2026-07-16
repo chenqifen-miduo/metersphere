@@ -18,6 +18,16 @@
         >
           {{ t('system.user.emailInvite') }}
         </a-button>
+        <a-button
+          v-permission="['ORGANIZATION_MEMBER:READ+UPDATE']"
+          type="outline"
+          class="mr-3"
+          :loading="wecomSyncing"
+          :disabled="wecomSyncing || !lastOrganizationId"
+          @click="handleSyncWecomMember"
+        >
+          {{ t('organization.member.syncWecomMember') }}
+        </a-button>
       </div>
       <a-input-search
         v-model="keyword"
@@ -179,6 +189,7 @@
     getMemberList,
     getProjectList,
   } from '@/api/modules/setting/member';
+  import { manualSync } from '@/api/modules/setting/orgStructure';
   import { useI18n } from '@/hooks/useI18n';
   import { useAppStore, useTableStore } from '@/store';
   import { characterLimit, formatPhoneNumber } from '@/utils';
@@ -188,10 +199,13 @@
   import type { AddOrUpdateMemberModel, LinkList, MemberItem } from '@/models/setting/member';
   import { TableKeyEnum } from '@/enums/tableEnum';
 
+  const SYNC_LOG_STATUS_FAILED = 'FAILED';
+
   const tableStore = useTableStore();
   const appStore = useAppStore();
   const { t } = useI18n();
   const lastOrganizationId = computed(() => appStore.currentOrgId);
+  const wecomSyncing = ref(false);
 
   const hasOrdMemberOperationPermission = computed(() =>
     hasAnyPermission(['ORGANIZATION_MEMBER:READ+UPDATE', 'ORGANIZATION_MEMBER:READ+DELETE'])
@@ -483,6 +497,28 @@
   };
 
   const inviteVisible = ref(false);
+
+  const handleSyncWecomMember = async () => {
+    if (!lastOrganizationId.value || wecomSyncing.value) {
+      return;
+    }
+    try {
+      wecomSyncing.value = true;
+      const result = await manualSync(lastOrganizationId.value);
+      if (result.syncStatus === SYNC_LOG_STATUS_FAILED) {
+        Message.error(result.errorMessage || t('organization.member.syncWecomMemberFailed'));
+      } else {
+        Message.success(t('organization.member.syncWecomMemberSuccess'));
+        await initData();
+      }
+    } catch (error: any) {
+      if (error?.response?.status === 409) {
+        Message.warning(t('organization.member.syncWecomMemberConflict'));
+      }
+    } finally {
+      wecomSyncing.value = false;
+    }
+  };
 
   onBeforeMount(() => {
     initData();

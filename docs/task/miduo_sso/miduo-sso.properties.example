@@ -1,0 +1,12 @@
+# miduo SSO 配置示例（复制到 local-runtime/conf/metersphere.properties，勿提交 Secret）
+#
+# miduo.sso.enabled=false
+# miduo.sso.base-url=https://your-miduo-host
+# miduo.sso.app-code=
+# miduo.sso.app-secret=
+# miduo.sso.redirect-uri=https://your-ms-host/#/sso/miduo/callback
+# miduo.sso.shortcut-id=
+# miduo.sso.organization-id=
+# miduo.sso.state-ttl-seconds=600
+# miduo.sso.session-ttl-seconds=86400
+# miduo.sso.refresh-ahead-seconds=1800

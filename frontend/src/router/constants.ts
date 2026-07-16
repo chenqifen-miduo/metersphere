@@ -10,6 +10,8 @@ export const WHITE_LIST = [
   { name: 'notFound', path: '/notFound', children: [] },
   { name: 'invite', path: '/invite', children: [] },
   { name: 'index', path: '/index', children: [] },
+  { name: 'loginAdmin', path: '/login/admin', children: [] },
+  { name: 'ssoMiduoCallback', path: '/sso/miduo/callback', children: [] },
   {
     name: 'share',
     path: '/share',

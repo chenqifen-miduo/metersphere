@@ -12,6 +12,8 @@ export interface LoginRes extends UserState {
   csrfToken: string;
   sessionId: string;
   token: string;
+  /** 米多 SSO：需跳转登录桥重认证 */
+  needMiduoReauth?: boolean;
 }
 // 企业微信对接信息
 export interface WecomInfo {

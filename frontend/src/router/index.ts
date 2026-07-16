@@ -31,6 +31,22 @@ const router = createRouter({
         requiresAuth: false,
       },
     },
+    {
+      path: '/login/admin',
+      name: 'loginAdmin',
+      component: () => import('@/views/login/index.vue'),
+      meta: {
+        requiresAuth: false,
+      },
+    },
+    {
+      path: '/sso/miduo/callback',
+      name: 'ssoMiduoCallback',
+      component: () => import('@/views/login/sso/MiduoCallback.vue'),
+      meta: {
+        requiresAuth: false,
+      },
+    },
     ...appRoutes,
     REDIRECT_MAIN,
     NOT_FOUND_ROUTE,

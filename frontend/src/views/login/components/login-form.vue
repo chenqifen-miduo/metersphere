@@ -1,10 +1,14 @@
 <template>
   <div
-    v-if="preheat && !props.isPreview"
+    v-if="(preheat || miduoRedirecting || miduoPending) && !props.isPreview"
     class="login-form"
     :style="props.isPreview ? 'height: inherit' : 'height: 100vh'"
   >
-    <a-spin :loading="preheat" :tip="t('login.form.loading')"> </a-spin>
+    <a-spin
+      :loading="true"
+      :tip="miduoRedirecting || miduoPending ? t('login.miduo.redirecting') : t('login.form.loading')"
+    >
+    </a-spin>
   </div>
   <div v-else class="login-form" :style="props.isPreview ? 'height: inherit' : 'height: 100vh'">
     <div class="title">
@@ -121,8 +125,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { computed, ref } from 'vue';
-  import { useRouter } from 'vue-router';
+  import { computed, onMounted, ref } from 'vue';
+  import { useRoute, useRouter } from 'vue-router';
   import { Message, SelectOptionData } from '@arco-design/web-vue';
 
   import MsIcon from '@/components/pure/ms-icon-font/index.vue';
@@ -130,6 +134,7 @@
 
   import { getProjectInfo } from '@/api/modules/project-management/basicInfo';
   import { getAuthDetailByType } from '@/api/modules/setting/config';
+  import { getMiduoBridgeUrl, getMiduoSsoStatus } from '@/api/modules/sso/miduo';
   import { getPlatformParamUrl } from '@/api/modules/user';
   import { GetLoginLogoUrl } from '@/api/requrls/setting/config';
   import { useI18n } from '@/hooks/useI18n';
@@ -147,6 +152,7 @@
 
   import { ValidatedError } from '@arco-design/web-vue/es/form/interface';
 
+  const route = useRoute();
   const router = useRouter();
   const { t } = useI18n();
   const userStore = useUserStore();
@@ -156,6 +162,11 @@
   const { openModal } = useModal();
 
   const orgOptions = ref<SelectOptionData[]>([]);
+  /** /login：默认跳米多；/login/admin：账密登录（仅手动输入地址进入） */
+  const isAdminLogin = computed(() => route.name === 'loginAdmin');
+  const miduoRedirecting = ref(false);
+  /** SSO 不可用时保持加载态，不暴露管理员入口 */
+  const miduoPending = ref(false);
 
   const preheat = ref(true);
 
@@ -301,6 +312,36 @@
     }
   }
 
+  async function tryRedirectMiduoBridge(): Promise<boolean> {
+    try {
+      const status = await getMiduoSsoStatus();
+      if (!status?.enabled || !status?.ready) {
+        return false;
+      }
+      const bridge = await getMiduoBridgeUrl();
+      if (!bridge?.url) {
+        return false;
+      }
+      miduoRedirecting.value = true;
+      window.location.href = bridge.url;
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function initAdminLoginPage() {
+    userStore.getAuthentication();
+    initPlatformInfo();
+    isLogin()
+      .then((res) => {
+        preheat.value = res;
+      })
+      .catch(() => {
+        preheat.value = false;
+      });
+  }
+
   function redirectAuth(authType: string) {
     if (authType === 'LDAP' || authType === 'LOCAL') {
       return;
@@ -358,18 +399,33 @@
     });
   }
 
-  onMounted(() => {
-    if (!props.isPreview) {
-      userStore.getAuthentication();
-      initPlatformInfo();
-      isLogin()
-        .then((res) => {
-          preheat.value = res;
-        })
-        .catch(() => {
-          preheat.value = false;
-        });
+  onMounted(async () => {
+    if (props.isPreview) {
+      preheat.value = false;
+      return;
     }
+    // 默认登录页：已登录则等待全局 checkIsLogin；未登录则自动跳转米多登录桥
+    if (!isAdminLogin.value) {
+      try {
+        const loggedIn = await isLogin();
+        if (loggedIn) {
+          preheat.value = true;
+          return;
+        }
+      } catch {
+        // 未登录，继续走米多桥
+      }
+      const redirected = await tryRedirectMiduoBridge();
+      if (redirected) {
+        return;
+      }
+      // SSO 不可用：仅保持加载态，不提示、不暴露管理员入口（/#/login/admin 需手动输入）
+      miduoPending.value = true;
+      preheat.value = false;
+      return;
+    }
+    // 管理员登录页：保留账密 / LDAP / 扫码等原有模式
+    await initAdminLoginPage();
   });
 </script>
 

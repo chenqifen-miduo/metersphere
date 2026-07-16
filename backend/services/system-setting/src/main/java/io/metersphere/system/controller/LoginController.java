@@ -16,6 +16,8 @@ import io.metersphere.system.dto.sdk.SessionUser;
 import io.metersphere.system.dto.user.UserDTO;
 import io.metersphere.system.log.constants.OperationLogType;
 import io.metersphere.system.service.UserLoginService;
+import io.metersphere.system.sso.miduo.MiduoSsoApplicationService;
+import io.metersphere.system.sso.miduo.MiduoSsoRefreshService;
 import io.metersphere.system.utils.SessionUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,6 +40,10 @@ public class LoginController {
     private UserLoginService userLoginService;
     @Resource
     private ProjectMapper projectMapper;
+    @Resource
+    private MiduoSsoApplicationService miduoSsoApplicationService;
+    @Resource
+    private MiduoSsoRefreshService miduoSsoRefreshService;
     @Value("${spring.messages.default-locale}")
     private String defaultLocale;
 
@@ -59,6 +65,15 @@ public class LoginController {
             Project lastProject = projectMapper.selectByPrimaryKey(sessionUser.getLastProjectId());
             if (StringUtils.isBlank(sessionUser.getLastProjectId()) || lastProject == null || !lastProject.getEnable()) {
                 sessionUser.setLastProjectId("no_such_project");
+            }
+            if (miduoSsoApplicationService.isMiduoSession()) {
+                boolean needReauth = miduoSsoRefreshService.refreshIfNeeded(sessionUser.getId());
+                sessionUser.setNeedMiduoReauth(needReauth);
+                SecurityUtils.getSubject().getSession().setAttribute("needMiduoReauth", needReauth);
+                ResultHolder holder = ResultHolder.success(sessionUser);
+                // message 兼容联调脚本；前端以 data.needMiduoReauth 为准（transform 会丢弃 message）
+                holder.setMessage(needReauth ? "NEED_MIDUO_REAUTH" : null);
+                return holder;
             }
             return ResultHolder.success(sessionUser);
         }
@@ -94,6 +109,10 @@ public class LoginController {
     @Operation(summary = "退出登录")
     public ResultHolder logout() throws Exception {
         if (SessionUtils.getUser() == null) {
+            return ResultHolder.success("logout success");
+        }
+        if (miduoSsoApplicationService.isMiduoSession()) {
+            miduoSsoApplicationService.logout();
             return ResultHolder.success("logout success");
         }
         userLoginService.saveLog(SessionUtils.getUserId(), HttpMethodConstants.GET.name(), "/signout", "登出成功", OperationLogType.LOGOUT.name());
