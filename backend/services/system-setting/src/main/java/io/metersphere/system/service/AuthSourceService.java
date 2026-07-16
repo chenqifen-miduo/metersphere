@@ -116,6 +116,15 @@ public class AuthSourceService {
         return types;
     }
 
+    public List<AuthSourceDTO> listEnabled() {
+        AuthSourceExample example = new AuthSourceExample();
+        example.createCriteria().andEnableEqualTo(true);
+        example.setOrderByClause("create_time desc");
+        return authSourceMapper.selectByExampleWithBLOBs(example).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
     public void testLdapConnect(Map<String, String> config) {
         String url = config.get("ldapUrl");
         String dn = config.get("ldapDn");

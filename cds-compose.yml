@@ -89,13 +89,10 @@ services:
         '  connectionMinimumIdleSize: 4' \
         '  connectionPoolSize: 16' \
         > /repo/local-runtime/conf/redisson.yml
-      # 若 target 已有 jar（m2 缓存命中后的二次部署），跳过全量 package 以缩短就绪时间
-      JAR=$(find /repo/backend/app/target -maxdepth 1 -type f -name 'app-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' 2>/dev/null | head -n 1 || true)
-      if [ -z "$JAR" ]; then
-        # 前后端分离：跳过 antrun 拷贝 frontend/dist（与 local-dev / CNB 一致）
-        mvn -pl backend/app -am package -DskipTests -DskipAntRunForJenkins=true
-        JAR=$(find /repo/backend/app/target -maxdepth 1 -type f -name 'app-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | head -n 1)
-      fi
+      # 始终重新 package，避免 CDS 二次部署沿用旧 jar（漏掉 SQL/Controller 修复）
+      # 前后端分离：跳过 antrun 拷贝 frontend/dist（与 local-dev / CNB 一致）
+      mvn -pl backend/app -am package -DskipTests -DskipAntRunForJenkins=true
+      JAR=$(find /repo/backend/app/target -maxdepth 1 -type f -name 'app-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | head -n 1 || true)
       if [ -z "$JAR" ]; then
         echo "ERROR: app jar not found under /repo/backend/app/target" >&2
         ls -la /repo/backend/app/target >&2 || true

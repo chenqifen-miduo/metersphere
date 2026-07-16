@@ -34,7 +34,8 @@
         SELECT
             u.id,
             u.NAME,
-            u.email
+            u.email,
+            u.create_time
         FROM
             `user` u
         WHERE
