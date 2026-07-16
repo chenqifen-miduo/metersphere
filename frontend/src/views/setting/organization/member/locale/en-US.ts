@@ -35,4 +35,8 @@ export default {
   'organization.member.statusEnable': 'Normal',
   'organization.member.statusDisable': 'Disabled',
   'organization.member.subTitle': 'When removed, you lose your organization privileges',
+  'organization.member.syncWecomMember': 'Sync WeCom Members',
+  'organization.member.syncWecomMemberSuccess': 'WeCom members synced successfully',
+  'organization.member.syncWecomMemberFailed': 'Failed to sync WeCom members',
+  'organization.member.syncWecomMemberConflict': 'Sync is in progress, please try again later',
 };

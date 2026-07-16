@@ -34,4 +34,8 @@ export default {
   'organization.member.statusEnable': '正常',
   'organization.member.statusDisable': '禁用',
   'organization.member.subTitle': '移除后，将失去组织权限',
+  'organization.member.syncWecomMember': '同步企业微信成员',
+  'organization.member.syncWecomMemberSuccess': '企业微信成员同步完成',
+  'organization.member.syncWecomMemberFailed': '企业微信成员同步失败',
+  'organization.member.syncWecomMemberConflict': '同步正在进行中，请稍后再试',
 };

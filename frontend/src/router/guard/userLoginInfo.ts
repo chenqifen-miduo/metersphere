@@ -12,14 +12,15 @@ export default function setupUserLoginInfoGuard(router: Router) {
     if (isLoginExpires()) {
       clearToken();
     }
-    if (to.name !== 'login' && hasToken(to.name as string)) {
+    const isLoginRoute = to.name === 'login' || to.name === 'loginAdmin';
+    if (!isLoginRoute && hasToken(to.name as string)) {
       next();
     } else {
-      if (to.name === 'login' || isWhiteListPage()) {
+      if (isLoginRoute || isWhiteListPage()) {
         next();
         return;
       }
-      // 未登录的且访问非白名单内的地址都直接跳转至登录页，访问的页面地址缓存到 query 上
+      // 未登录的且访问非白名单内的地址都直接跳转至登录页（默认走米多 SSO），访问的页面地址缓存到 query 上
       next({
         name: 'login',
         query: {
