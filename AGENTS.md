@@ -46,19 +46,18 @@ Backend build: `./mvnw -pl backend/app -am install -DskipTests -DskipAntRunForJe
 Backend tests: `./mvnw -pl <module> test -Dtest=<Class>` (most controller tests boot the full Spring context
 and need the middleware running).
 
-### 4. Frontend (Vite dev server, port 5173) — MUST use Node 20
-The project pins **Node v20.8.1** + **pnpm 8.4.0**. The VM's default `node` (`/exec-daemon/node`) is v22 and
-**breaks** the Vite ESLint plugin with `TypeError: Missing required argument: node` (an eslint 8 + Node 22
-incompatibility) — this crashes both `pnpm run dev` (blocking error overlay) and `pnpm run lint`. Always
-select Node 20 first and put it ahead of `/exec-daemon` on PATH:
+### 4. Frontend (Vite dev server, port 5173) — Node 20 only
+The project pins **Node v20.8.1** + **pnpm 8.4.0**. nvm's default alias is set to 20.8.1, so a normal login
+shell already uses Node 20 (`node -v` → v20.8.1) and plain commands work:
 ```bash
-export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"; nvm use 20.8.1
-export PATH="$HOME/.nvm/versions/node/v20.8.1/bin:$PATH"
-corepack prepare pnpm@8.4.0 --activate
 cd frontend && pnpm run dev          # http://localhost:5173  (proxies /front etc. -> :8081)
 ```
+Do **not** run the frontend on Node 22: the binary `/exec-daemon/node` is v22 and, if invoked directly,
+breaks the Vite ESLint plugin with `TypeError: Missing required argument: node` (an eslint 8 + Node 22
+incompatibility) — it crashes both `pnpm run dev` (blocking overlay) and `pnpm run lint`. If a shell ever
+shows Node 22, force Node 20 first: `. "$NVM_DIR/nvm.sh"; nvm use 20.8.1`.
 Lint: `pnpm exec eslint src --ext .vue,.ts,.tsx` (repo `pnpm run lint` adds `--fix`). Type check:
-`pnpm run type:check`. All must run under Node 20.
+`pnpm run type:check`.
 
 Note: `frontend/package.json` pins `pnpm.overrides.eslint-module-utils` to `2.8.0`. This repo has **no
 committed lockfile**, so without the override pnpm resolves `eslint-module-utils@2.14.0`, which crashes
