@@ -105,7 +105,7 @@ services:
       exec java -Dspring.profiles.active=local -jar "$JAR"
     labels:
       cds.path-prefix: "/organization"
-      cds.path-prefixes: "/organization/,/project/,/system/,/login,/sign/,/api/,/ws/,/file/,/attachment/,/bug/,/test-plan/,/plugin/,/base-display/,/display/,/authsource/,/front/"
+      cds.path-prefixes: "/organization/,/project/,/system/,/login,/sign/,/api/,/ws/,/file/,/attachment/,/bug/,/test-plan/,/plugin/,/base-display/,/display/,/auth/,/authsource/,/front/"
       cds.readiness-path: "/api/agent/v1/functional/health"
       cds.readiness-timeout: "1800"
       cds.readiness-interval: "10"

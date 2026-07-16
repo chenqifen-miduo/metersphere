@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 
 import { getProjectInfo } from '@/api/modules/project-management/project';
+import { getMiduoBridgeUrl } from '@/api/modules/sso/miduo';
 import { getUserHasProjectPermission } from '@/api/modules/system';
 import {
   getAuthenticationList,
@@ -188,6 +189,19 @@ const useUserStore = defineStore('user', {
         const res = await userIsLogin();
         if (!res) {
           return false;
+        }
+        if (res.needMiduoReauth) {
+          try {
+            const bridge = await getMiduoBridgeUrl();
+            if (bridge?.url) {
+              clearToken();
+              window.location.href = bridge.url;
+              return false;
+            }
+          } catch (e) {
+            // eslint-disable-next-line no-console
+            console.log(e);
+          }
         }
         const appStore = useAppStore();
         setToken(res.sessionId, res.csrfToken);

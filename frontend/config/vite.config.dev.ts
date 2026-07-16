@@ -68,6 +68,10 @@ export default mergeConfig(
           changeOrigin: true,
           rewrite: (path: string) => path.replace(/^\/front\/base-display/, ''),
         },
+        '/auth': {
+          target: process.env.VITE_DEV_DOMAIN,
+          changeOrigin: true,
+        },
       },
     },
     plugins: [
