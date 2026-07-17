@@ -7,7 +7,6 @@ import io.metersphere.system.dto.sdk.TemplateCustomFieldDTO;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
@@ -61,13 +60,23 @@ public class FunctionalCaseExcelData {
         return new ArrayList<>();
     }
 
+    /**
+     * 下载导入模板表头：对齐参考列顺序
+     * 用例ID|用例名称|所属模块|前置条件|步骤描述|预期结果|[自定义字段含用例等级]|备注
+     * 标签、编辑模式仅兼容导入，不出现在下载模板中。
+     */
     public List<List<String>> getHead(List<TemplateCustomFieldDTO> customFields, Locale lang) {
         List<List<String>> heads = new ArrayList<>();
-        FunctionalCaseImportFiled[] fields = FunctionalCaseImportFiled.values();
-        for (FunctionalCaseImportFiled field : fields) {
-            if (!StringUtils.equalsIgnoreCase(field.name(), "ID")) {
-                heads.add(Arrays.asList(field.getFiledLangMap().get(lang)));
-            }
+        FunctionalCaseImportFiled[] templateFields = {
+                FunctionalCaseImportFiled.ID,
+                FunctionalCaseImportFiled.NAME,
+                FunctionalCaseImportFiled.MODULE,
+                FunctionalCaseImportFiled.PREREQUISITE,
+                FunctionalCaseImportFiled.TEXT_DESCRIPTION,
+                FunctionalCaseImportFiled.EXPECTED_RESULT
+        };
+        for (FunctionalCaseImportFiled field : templateFields) {
+            heads.add(Arrays.asList(field.getFiledLangMap().get(lang)));
         }
 
         if (CollectionUtils.isNotEmpty(customFields)) {
@@ -77,6 +86,8 @@ public class FunctionalCaseExcelData {
                 heads.add(list);
             }
         }
+
+        heads.add(Arrays.asList(FunctionalCaseImportFiled.DESCRIPTION.getFiledLangMap().get(lang)));
         return heads;
     }
 }

@@ -217,18 +217,17 @@ public class FunctionalCaseFileService {
             testCaseDTO.setModule(path.toString());
             testCaseDTO.setPrerequisite(Translator.get("test_case_prerequisite"));
             testCaseDTO.setDescription(Translator.get("test_case_remark"));
-            testCaseDTO.setCaseEditType("STEP");
             String textDescription = "";
             String expectedResult = "";
             for (int j = 1; j < 5; j++) {
                 textDescription = textDescription + "[" + j + "]" + Translator.get("test_case_step_desc") + i + "\n";
-
                 expectedResult = expectedResult + "[" + j + "]" + Translator.get("test_case_step_result") + i + "\n";
-
             }
             testCaseDTO.setTextDescription(textDescription);
             testCaseDTO.setExpectedResult(expectedResult);
-
+            Map<String, Object> customData = new HashMap<>();
+            customData.put(Translator.get("custom_field.functional_priority"), "P" + ((i - 1) % 4));
+            testCaseDTO.setCustomData(customData);
             list.add(testCaseDTO);
         }
         return list;
