@@ -168,6 +168,10 @@ public class FunctionalCaseCheckEventListener extends AnalysisEventListener<Map<
      * @param functionalCaseExcelData
      */
     private void buildUpdateOrErrorList(Integer rowIndex, FunctionalCaseExcelData functionalCaseExcelData) {
+        if (isBlankRow(functionalCaseExcelData)) {
+            return;
+        }
+        applyImportDefaults(functionalCaseExcelData);
         StringBuilder errMsg;
         try {
             //根据excel数据实体中的javax.validation + 正则表达式来校验excel数据
@@ -200,6 +204,37 @@ public class FunctionalCaseCheckEventListener extends AnalysisEventListener<Map<
         } else {
             //通过数量
             list.add(functionalCaseExcelData);
+        }
+    }
+
+    private boolean isBlankRow(FunctionalCaseExcelData data) {
+        if (StringUtils.isNotBlank(data.getNum())
+                || StringUtils.isNotBlank(data.getName())
+                || StringUtils.isNotBlank(data.getModule())
+                || StringUtils.isNotBlank(data.getPrerequisite())
+                || StringUtils.isNotBlank(data.getTextDescription())
+                || StringUtils.isNotBlank(data.getExpectedResult())
+                || StringUtils.isNotBlank(data.getDescription())
+                || StringUtils.isNotBlank(data.getTags())
+                || StringUtils.isNotBlank(data.getCaseEditType())) {
+            return false;
+        }
+        if (data.getCustomData() != null) {
+            for (Object value : data.getCustomData().values()) {
+                if (value != null && StringUtils.isNotBlank(value.toString())) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private void applyImportDefaults(FunctionalCaseExcelData data) {
+        if (StringUtils.isBlank(data.getName())) {
+            data.setName(Translator.get("case.import.default.name"));
+        }
+        if (StringUtils.isBlank(data.getModule()) || StringUtils.equals(StringUtils.trim(data.getModule()), "/")) {
+            data.setModule("/" + Translator.get("functional_case.module.default.name"));
         }
     }
 
@@ -564,6 +599,14 @@ public class FunctionalCaseCheckEventListener extends AnalysisEventListener<Map<
                 }
             }
         }
+        for (io.metersphere.functional.excel.constants.FunctionalCaseImportFiled filed :
+                io.metersphere.functional.excel.constants.FunctionalCaseImportFiled.values()) {
+            String javaField = StringUtils.equals(filed.getValue(), "id") ? "num" : filed.getValue();
+            for (String langHead : filed.getFiledLangMap().values()) {
+                excelHeadToFieldNameDic.put(langHead, javaField);
+            }
+        }
+        excelHeadToFieldNameDic.put("ID", "num");
         return result;
     }
 
