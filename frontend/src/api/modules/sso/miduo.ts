@@ -14,6 +14,7 @@ import {
 export interface MiduoSsoStatus {
   enabled: boolean;
   ready: boolean;
+  localLoginEnabled: boolean;
   reason?: string;
   message?: string;
 }
