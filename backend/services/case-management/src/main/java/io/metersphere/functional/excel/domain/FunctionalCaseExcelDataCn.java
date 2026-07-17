@@ -4,7 +4,6 @@ import com.alibaba.excel.annotation.ExcelProperty;
 import com.alibaba.excel.annotation.write.style.ColumnWidth;
 import io.metersphere.functional.excel.annotation.NotRequired;
 import io.metersphere.system.dto.sdk.TemplateCustomFieldDTO;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
@@ -20,16 +19,16 @@ import java.util.Locale;
 public class FunctionalCaseExcelDataCn extends FunctionalCaseExcelData {
 
     @ColumnWidth(50)
-    @ExcelProperty("ID")
+    @ExcelProperty("用例ID")
     @NotRequired
     private String num;
 
-    @NotBlank(message = "{cannot_be_null}")
+    @NotRequired
     @Length(max = 255)
     @ExcelProperty("用例名称")
     private String name;
 
-    @NotBlank(message = "{cannot_be_null}")
+    @NotRequired
     @Length(max = 100)
     @ExcelProperty("所属模块")
     @ColumnWidth(30)
@@ -43,18 +42,22 @@ public class FunctionalCaseExcelDataCn extends FunctionalCaseExcelData {
 
     @ColumnWidth(50)
     @ExcelProperty("前置条件")
+    @NotRequired
     private String prerequisite;
 
     @ColumnWidth(50)
     @ExcelProperty("备注")
+    @NotRequired
     private String description;
 
     @ColumnWidth(50)
     @ExcelProperty("步骤描述")
+    @NotRequired
     private String textDescription;
 
     @ColumnWidth(50)
     @ExcelProperty("预期结果")
+    @NotRequired
     private String expectedResult;
 
     @ColumnWidth(50)

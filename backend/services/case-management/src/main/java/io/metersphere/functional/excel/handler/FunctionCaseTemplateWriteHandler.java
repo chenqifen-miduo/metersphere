@@ -67,10 +67,10 @@ public class FunctionCaseTemplateWriteHandler implements RowWriteHandler {
                     setComment(fieldMap.get(entry.getKey()), Translator.get("excel.template.id"));
                 }
                 if (FunctionalCaseImportFiled.NAME.containsHead(entry.getKey())) {
-                    setComment(fieldMap.get(entry.getKey()), Translator.get("required"));
+                    setComment(fieldMap.get(entry.getKey()), Translator.get("excel.template.not_required"));
                 }
                 if (FunctionalCaseImportFiled.MODULE.containsHead(entry.getKey())) {
-                    setComment(fieldMap.get(entry.getKey()), Translator.get("required").concat("，").concat(Translator.get("module_created_automatically")));
+                    setComment(fieldMap.get(entry.getKey()), Translator.get("excel.template.not_required").concat("，").concat(Translator.get("module_created_automatically")));
                 }
                 if (FunctionalCaseImportFiled.TAGS.containsHead(entry.getKey())) {
                     setComment(fieldMap.get(entry.getKey()), Translator.get("excel.template.tag"));
@@ -91,30 +91,16 @@ public class FunctionCaseTemplateWriteHandler implements RowWriteHandler {
                     setComment(fieldMap.get(entry.getKey()), Translator.get("excel.template.not_required"));
                 }
 
-                //自定义字段
+                //自定义字段：导入模板全部非必填
                 if (customField.containsKey(entry.getKey())) {
                     TemplateCustomFieldDTO templateCustomFieldDTO = customField.get(entry.getKey());
                     List<String> strings = customFieldOptionsMap.get(entry.getKey());
                     if (StringUtils.equalsAnyIgnoreCase(templateCustomFieldDTO.getType(), CustomFieldType.MULTIPLE_MEMBER.name(), CustomFieldType.MEMBER.name())) {
-                        if (templateCustomFieldDTO.getRequired()) {
-                            setComment(fieldMap.get(entry.getKey()), Translator.get("required").concat(",").concat(Translator.get("excel.template.member")));
-                        } else {
-                            setComment(fieldMap.get(entry.getKey()), Translator.get("excel.template.not_required").concat(",").concat(Translator.get("excel.template.member")));
-                        }
+                        setComment(fieldMap.get(entry.getKey()), Translator.get("excel.template.not_required").concat(",").concat(Translator.get("excel.template.member")));
+                    } else if (CollectionUtils.isNotEmpty(strings)) {
+                        setComment(fieldMap.get(entry.getKey()), Translator.get("excel.template.not_required").concat("：").concat(Translator.get("options")).concat(JSON.toJSONString(customFieldOptionsMap.get(entry.getKey()))));
                     } else {
-                        if (templateCustomFieldDTO.getRequired()) {
-                            if (CollectionUtils.isNotEmpty(strings)) {
-                                setComment(fieldMap.get(entry.getKey()), Translator.get("required").concat("：").concat(Translator.get("options")).concat(JSON.toJSONString(customFieldOptionsMap.get(entry.getKey()))));
-                            } else {
-                                setComment(fieldMap.get(entry.getKey()), Translator.get("required"));
-                            }
-                        } else {
-                            if (CollectionUtils.isNotEmpty(strings)) {
-                                setComment(fieldMap.get(entry.getKey()), Translator.get("excel.template.not_required").concat("：").concat(Translator.get("options")).concat(JSON.toJSONString(customFieldOptionsMap.get(entry.getKey()))));
-                            } else {
-                                setComment(fieldMap.get(entry.getKey()), Translator.get("excel.template.not_required"));
-                            }
-                        }
+                        setComment(fieldMap.get(entry.getKey()), Translator.get("excel.template.not_required"));
                     }
                 }
             }

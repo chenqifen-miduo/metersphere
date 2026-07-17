@@ -19,15 +19,17 @@ import java.util.function.Function;
 
 public enum FunctionalCaseImportFiled {
 
-    ID("id", "ID", "ID", "ID", FunctionalCaseExcelData::getNum),
+    ID("id", "用例ID", "用例ID", "Case ID", FunctionalCaseExcelData::getNum),
     NAME("name", "用例名称", "用例名稱", "Name", FunctionalCaseExcelData::getName),
     MODULE("module", "所属模块", "所屬模塊", "Module", FunctionalCaseExcelData::getModule),
-    TAGS("tags", "标签", "標簽", "Tag", FunctionalCaseImportFiled::parseTags),
     PREREQUISITE("prerequisite", "前置条件", "前置條件", "Prerequisite", FunctionalCaseExcelData::getPrerequisite),
     TEXT_DESCRIPTION("textDescription", "步骤描述", "步驟描述", "Text description", FunctionalCaseExcelData::getTextDescription),
     EXPECTED_RESULT("expectedResult", "预期结果", "預期結果", "Expected result", FunctionalCaseExcelData::getExpectedResult),
-    CASE_EDIT_TYPE("caseEditType", "编辑模式", "編輯模式", "Case edit type", FunctionalCaseExcelData::getCaseEditType),
-    DESCRIPTION("description", "备注", "備註", "Description", FunctionalCaseExcelData::getDescription);
+    DESCRIPTION("description", "备注", "備註", "Description", FunctionalCaseExcelData::getDescription),
+    /** 兼容旧模板导入，下载模板不再包含 */
+    TAGS("tags", "标签", "標簽", "Tag", FunctionalCaseImportFiled::parseTags),
+    /** 兼容旧模板导入，下载模板不再包含 */
+    CASE_EDIT_TYPE("caseEditType", "编辑模式", "編輯模式", "Case edit type", FunctionalCaseExcelData::getCaseEditType);
 
     private Map<Locale, String> filedLangMap;
     private Function<FunctionalCaseExcelData, String> parseFunc;

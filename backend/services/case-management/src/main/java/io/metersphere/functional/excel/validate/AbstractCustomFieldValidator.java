@@ -6,7 +6,6 @@ import io.metersphere.sdk.util.JSON;
 import io.metersphere.sdk.util.LogUtils;
 import io.metersphere.sdk.util.Translator;
 import io.metersphere.system.dto.sdk.TemplateCustomFieldDTO;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,18 +41,11 @@ public abstract class AbstractCustomFieldValidator {
     }
 
     protected void validateRequired(TemplateCustomFieldDTO customField, String value) throws CustomFieldValidateException {
-        if (customField.getRequired() && StringUtils.isBlank(value)) {
-            if (StringUtils.equalsIgnoreCase(customField.getInternalFieldKey(),"functional_priority")) {
-                return;
-            }
-            CustomFieldValidateException.throwException(String.format(Translator.get("custom_field_required_tip"), customField.getFieldName()));
-        }
+        // 导入模板全部字段非必填，跳过必填校验；空值由保存时回落默认值
     }
 
     protected void validateArrayRequired(TemplateCustomFieldDTO customField, String value) throws CustomFieldValidateException {
-        if (customField.getRequired() && (StringUtils.isBlank(value) || StringUtils.equals(value, "[]"))) {
-            CustomFieldValidateException.throwException(String.format(Translator.get("custom_field_required_tip"), customField.getFieldName()));
-        }
+        // 导入模板全部字段非必填，跳过必填校验
     }
 
     protected List<String> parse2Array(String name, String value) throws CustomFieldValidateException {
