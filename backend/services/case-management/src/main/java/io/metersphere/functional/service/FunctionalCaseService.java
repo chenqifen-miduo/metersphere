@@ -60,6 +60,7 @@ import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -182,6 +183,9 @@ public class FunctionalCaseService {
     private CaseReviewLogService caseReviewLogService;;
     @Resource
     private io.metersphere.functional.hub.service.DefaultHubCaseSyncService defaultHubCaseSyncService;
+    @Lazy
+    @Resource
+    private io.metersphere.system.edit.service.ResourceEditService resourceEditService;
 
     public FunctionalCase addFunctionalCase(FunctionalCaseAddRequest request, List<MultipartFile> files, String userId, String organizationId) {
         String caseId = IDGenerator.nextStr();
@@ -1030,6 +1034,10 @@ public class FunctionalCaseService {
             functionalCase.setUpdateUser(userId);
             extFunctionalCaseMapper.batchUpdate(functionalCase, ids);
             functionalCaseNoticeService.batchSendNotice(request.getProjectId(), ids, user, NoticeConstants.Event.UPDATE);
+            // 写入路径单次快照（无中间态；开关默认关）
+            resourceEditService.recordWritePathSnapshots(
+                    io.metersphere.sdk.constants.ResourceEditConstants.TYPE_FUNCTIONAL_CASE,
+                    request.getProjectId(), ids, userId);
         }
 
     }
