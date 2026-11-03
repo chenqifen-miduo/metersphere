@@ -1,7 +1,8 @@
-name: CDS Prebuilt Preview
+name: Branch Image
 
 on:
-  workflow_call:
+  push:
+    branches: ['agent/msp-12-cds-preflight']
   workflow_dispatch:
 
 permissions:
@@ -40,7 +41,7 @@ jobs:
           corepack prepare pnpm@8.4.0 --activate
           cd frontend
           pnpm install --no-frozen-lockfile
-          pnpm run build
+          VITE_API_BASE_URL=front pnpm run build
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -54,9 +55,11 @@ jobs:
           set -euo pipefail
           IMAGE_ROOT="ghcr.io/${REPOSITORY,,}-cds"
           docker build -f Dockerfile.backend --build-arg MS_VERSION="$COMMIT_SHA" -t metersphere-cds-base .
-          docker build -f deploy/cds/Dockerfile.backend -t "$IMAGE_ROOT-backend:sha-$COMMIT_SHA" .
-          docker build -f deploy/cds/Dockerfile.frontend -t "$IMAGE_ROOT-frontend:sha-$COMMIT_SHA" .
+          docker build -f deploy/cds/Dockerfile.backend --label "org.opencontainers.image.source=https://github.com/$REPOSITORY" --label "org.opencontainers.image.revision=$COMMIT_SHA" -t "$IMAGE_ROOT-backend:sha-$COMMIT_SHA" .
+          docker build -f deploy/cds/Dockerfile.frontend --label "org.opencontainers.image.source=https://github.com/$REPOSITORY" --label "org.opencontainers.image.revision=$COMMIT_SHA" -t "$IMAGE_ROOT-frontend:sha-$COMMIT_SHA" .
           docker run --rm --add-host app:127.0.0.1 --entrypoint nginx "$IMAGE_ROOT-frontend:sha-$COMMIT_SHA" -t
-          docker push "$IMAGE_ROOT-backend:sha-$COMMIT_SHA"
-          docker push "$IMAGE_ROOT-frontend:sha-$COMMIT_SHA"
+          # CDS runs linux/amd64; publish the runtime manifest explicitly rather
+          # than the local image-store index and its auxiliary attestations.
+          docker push --platform linux/amd64 "$IMAGE_ROOT-backend:sha-$COMMIT_SHA"
+          docker push --platform linux/amd64 "$IMAGE_ROOT-frontend:sha-$COMMIT_SHA"
           printf 'Backend: `%s`\nFrontend: `%s`\n' "$IMAGE_ROOT-backend:sha-$COMMIT_SHA" "$IMAGE_ROOT-frontend:sha-$COMMIT_SHA" >> "$GITHUB_STEP_SUMMARY"
